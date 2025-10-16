@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Return Abuse Detection System{% endblock %}
+
+{% block content %}
+<!-- Feedback Notification Area -->
+<div id="feedback-area" class="position-fixed top-0 start-50 translate-middle-x" style="z-index: 9999; top: 20px !important;">
+</div>
+
+<div class="row">
+    <!-- Header Section -->
+    <div class="col-12">
+        <div class="card bg-gradient-primary text-white mb-4">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h1 class="card-title h3 mb-1">
+                            <i class="fas fa-shield-alt me-2"></i>
+                            Return Abuse Detection System
+                        </h1>
+                        <p class="card-text">AI-powered fraud detection for e-commerce returns</p>
+                    </div>
+                    <div class="text-end">
+                        <i class="fas fa-brain fa-3x opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Prediction Form -->
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-search me-2 text-primary"></i>
+                    Analyze Return Request
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('predict') }}" id="predictionForm">
+                    <div class="row">
+                        <!-- Basic Information -->
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-info-circle me-1"></i>Basic Information
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <label for="user_id" class="form-label">User ID *</label>
+                                <input type="text" class="form-control" id="user_id" name="user_id" 
+                                       placeholder="e.g., U00123" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="order_id" class="form-label">Order ID *</label>
+                                <input type="text" class="form-control" id="order_id" name="order_id" 
+                                       placeholder="e.g., O000001" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="product_id" class="form-label">Product ID *</label>
+                                <input type="text" class="form-control" id="product_id" name="product_id" 
+                                       placeholder="e.g., P02881" required>
+                            </div>
+                        </div>
+
+                        <!-- Return Details -->
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-undo me-1"></i>Return Details
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <label for="return_reason" class="form-label">Return Reason *</label>
+                                <select class="form-select" id="return_reason" name="return_reason" required>
+                                    <option value="">Select reason...</option>
+                                    <option value="wrong color">Wrong Color</option>
+                                    <option value="poor quality">Poor Quality</option>
+                                    <option value="item damaged during delivery">Item Damaged During Delivery</option>
+                                    <option value="received late">Received Late</option>
+                                    <option value="unwanted gift">Unwanted Gift</option>
+                                    <option value="wrong item delivered">Wrong Item Delivered</option>
+                                    <option value="not satisfied with the product">Not Satisfied with Product</option>
+                                    <option value="product not as described">Product Not as Described</option>
+                                    <option value="changed mind">Changed Mind</option>
+                                    <option value="duplicate order">Duplicate Order</option>
+                                    <option value="defective product">Defective Product</option>
+                                    <option value="accidental purchase">Accidental Purchase</option>
+                                    <option value="size issue">Size Issue</option>
+                                    <option value="incorrect quantity">Incorrect Quantity</option>
+                                    <option value="missing accessories">Missing Accessories</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="image_uploaded" class="form-label">Image Uploaded</label>
+                                <select class="form-select" id="image_uploaded" name="image_uploaded">
+                                    <option value="0">No</option>
+                                    <option value="1">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <!-- Behavioral Features -->
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-user-cog me-1"></i>User Behavior
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <label for="user_return_count" class="form-label">Previous Return Count</label>
+                                <input type="number" class="form-control" id="user_return_count" 
+                                       name="user_return_count" min="0" value="0">
+                                <div class="form-text">Number of previous returns by this user</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="return_message_sentiment" class="form-label">Message Sentiment Score</label>
+                                <input type="number" class="form-control" id="return_message_sentiment" 
+                                       name="return_message_sentiment" min="-1" max="1" step="0.01" value="0">
+                                <div class="form-text">Sentiment analysis score (-1 to 1)</div>
+                            </div>
+                        </div>
+
+                        <!-- Processing Features -->
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-clock me-1"></i>Processing Info
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <label for="return_approval_time" class="form-label">Approval Time (days)</label>
+                                <input type="number" class="form-control" id="return_approval_time" 
+                                       name="return_approval_time" min="0" max="30" value="0">
+                                <div class="form-text">Expected processing time in days</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <button type="reset" class="btn btn-outline-secondary me-md-2">
+                            <i class="fas fa-redo me-1"></i>Reset
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i>Analyze Return
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="col-lg-4">
+        <!-- Model Status -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-robot me-2"></i>Model Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <p class="mb-1"><strong>ML Model:</strong> Random Forest</p>
+                        <p class="mb-1"><strong>Status:</strong> <span class="badge bg-success">Active</span></p>
+                        <p class="mb-0"><strong>Accuracy:</strong> 87%+</p>
+                    </div>
+                    <div class="text-success">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-white">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-tools me-2 text-primary"></i>Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <form method="POST" action="{{ url_for('train_model') }}" class="d-inline">
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-sync me-1"></i>Retrain Model
+                        </button>
+                    </form>
+                    <a href="{{ url_for('view_logs') }}" class="btn btn-outline-info">
+                        <i class="fas fa-list me-1"></i>View Abuse Logs
+                    </a>
+                    <a href="{{ url_for('view_database') }}" class="btn btn-outline-success">
+                        <i class="fas fa-database me-1"></i>View Database
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" onclick="loadSampleData()">
+                        <i class="fas fa-file-import me-1"></i>Load Sample Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Levels Info -->
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-info me-2 text-primary"></i>Risk Levels
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="risk-level">
+                    <span class="badge bg-success me-2">LOW</span>
+                    <small>0-30%: Auto Approve</small>
+                </div>
+                <div class="risk-level">
+                    <span class="badge bg-warning me-2">MEDIUM</span>
+                    <small>30-80%: Manual Review</small>
+                </div>
+                <div class="risk-level">
+                    <span class="badge bg-danger me-2">HIGH</span>
+                    <small>80-100%: Auto Reject</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>Analyzing Return Request...</h5>
+                <p class="text-muted mb-0">Please wait while our AI model processes the data</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Show loading modal on form submit
+document.getElementById('predictionForm').addEventListener('submit', function() {
+    var loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    loadingModal.show();
+});
+
+// Load sample data function
+function loadSampleData() {
+    document.getElementById('user_id').value = 'U00467';
+    document.getElementById('order_id').value = 'O000010';
+    document.getElementById('product_id').value = 'P01821';
+    document.getElementById('return_reason').value = 'wrong item delivered';
+    document.getElementById('image_uploaded').value = '1';
+    document.getElementById('user_return_count').value = '1';
+    document.getElementById('return_message_sentiment').value = '-0.72';
+    document.getElementById('return_approval_time').value = '11';
+}
+</script>
+{% endblock %}

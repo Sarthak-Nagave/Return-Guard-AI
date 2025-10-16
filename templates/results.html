@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis Results - Return Abuse Detection System{% endblock %}
+
+{% block content %}
+<!-- Feedback Notification Area -->
+<div id="feedback-area" class="position-fixed top-0 start-50 translate-middle-x" style="z-index: 9999; top: 20px !important;">
+</div>
+
+<div class="row">
+    <!-- Results Header -->
+    <div class="col-12">
+        <div class="card bg-gradient-{{ 'danger' if prediction == 1 else 'success' }} text-white mb-4"
+             data-user-id="{{ form_data.user_id }}"
+             data-order-id="{{ form_data.order_id }}"
+             data-product-id="{{ form_data.product_id }}"
+             data-return-reason="{{ form_data.return_reason }}"
+             data-abuse-probability="{{ abuse_probability }}"
+             data-risk-score="{{ risk_score }}">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h2 class="card-title mb-1">
+                            <i class="fas fa-{{ 'exclamation-triangle' if prediction == 1 else 'check-circle' }} me-2"></i>
+                            {{ 'POTENTIAL ABUSE DETECTED' if prediction == 1 else 'NORMAL RETURN REQUEST' }}
+                        </h2>
+                        <p class="card-text mb-0">Analysis completed for Order {{ form_data.order_id }}</p>
+                    </div>
+                    <div class="text-end">
+                        <div class="display-4">{{ (abuse_probability * 100)|round(1) }}%</div>
+                        <small>Abuse Probability</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Risk Assessment -->
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tachometer-alt me-2 text-primary"></i>Risk Assessment
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <!-- Risk Score Gauge -->
+                <div class="risk-gauge mb-3">
+                    <div class="risk-score-circle">
+                        <svg width="120" height="120" viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="50" stroke="#e9ecef" stroke-width="10" fill="transparent"/>
+                            <circle cx="60" cy="60" r="50" stroke="{% if risk_score < 30 %}#28a745{% elif risk_score < 80 %}#ffc107{% else %}#dc3545{% endif %}" 
+                                    stroke-width="10" fill="transparent" stroke-dasharray="314.16" 
+                                    stroke-dashoffset="{{ 314.16 - (314.16 * risk_score / 100) }}"
+                                    transform="rotate(-90 60 60)"/>
+                            <text x="60" y="65" text-anchor="middle" font-size="20" font-weight="bold" 
+                                  fill="{% if risk_score < 30 %}#28a745{% elif risk_score < 80 %}#ffc107{% else %}#dc3545{% endif %}">
+                                {{ risk_score }}
+                            </text>
+                        </svg>
+                    </div>
+                </div>
+                
+                <h4 class="text-{% if risk_score < 30 %}success{% elif risk_score < 80 %}warning{% else %}danger{% endif %}">
+                    Risk Score: {{ risk_score }}/100
+                </h4>
+                
+                <div class="alert alert-{% if recommendation == 'APPROVE' %}success{% elif recommendation == 'MANUAL_REVIEW' %}warning{% else %}danger{% endif %} mt-3">
+                    <h6 class="alert-heading mb-1">
+                        <i class="fas fa-{% if recommendation == 'APPROVE' %}check{% elif recommendation == 'MANUAL_REVIEW' %}clock{% else %}times{% endif %} me-1"></i>
+                        Recommendation
+                    </h6>
+                    <strong>{{ recommendation.replace('_', ' ') }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-tools me-2 text-primary"></i>Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Analyze Another Return
+                    </a>
+                    <button onclick="window.print()" class="btn btn-outline-secondary">
+                        <i class="fas fa-print me-1"></i>Print Report
+                    </button>
+                    <button onclick="downloadReport()" class="btn btn-outline-info">
+                        <i class="fas fa-download me-1"></i>Download Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Details -->
+    <div class="col-lg-8">
+        <!-- Prediction Details -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line me-2 text-primary"></i>Analysis Details
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Prediction Confidence</h6>
+                        <div class="progress mb-3" style="height: 25px;">
+                            <div class="progress-bar bg-{% if abuse_probability > 0.7 %}danger{% elif abuse_probability > 0.3 %}warning{% else %}success{% endif %}" 
+                                 role="progressbar" style="width: {{ (abuse_probability * 100)|round(1) }}%">
+                                {{ (abuse_probability * 100)|round(1) }}%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary">Model Accuracy</h6>
+                        <div class="progress mb-3" style="height: 25px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 87%">
+                                87%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature Analysis -->
+                <h6 class="text-primary mt-4">Risk Factors</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="risk-factor">
+                            <div class="d-flex justify-content-between">
+                                <span>Return History</span>
+                                <span class="badge bg-{% if form_data.user_return_count|int > 3 %}danger{% elif form_data.user_return_count|int > 1 %}warning{% else %}success{% endif %}">
+                                    {{ form_data.user_return_count }} returns
+                                </span>
+                            </div>
+                        </div>
+                        <div class="risk-factor">
+                            <div class="d-flex justify-content-between">
+                                <span>Sentiment Score</span>
+                                <span class="badge bg-{% if form_data.return_message_sentiment|float < -0.5 %}danger{% elif form_data.return_message_sentiment|float < 0 %}warning{% else %}success{% endif %}">
+                                    {{ form_data.return_message_sentiment }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="risk-factor">
+                            <div class="d-flex justify-content-between">
+                                <span>Image Evidence</span>
+                                <span class="badge bg-{% if form_data.image_uploaded|int == 0 %}warning{% else %}success{% endif %}">
+                                    {{ 'Provided' if form_data.image_uploaded|int == 1 else 'Not Provided' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="risk-factor">
+                            <div class="d-flex justify-content-between">
+                                <span>Processing Time</span>
+                                <span class="badge bg-{% if form_data.return_approval_time|int > 10 %}warning{% else %}success{% endif %}">
+                                    {{ form_data.return_approval_time }} days
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Return Request Summary -->
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-file-alt me-2 text-primary"></i>Return Request Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>User ID:</strong></td>
+                                <td>{{ form_data.user_id }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Order ID:</strong></td>
+                                <td>{{ form_data.order_id }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Product ID:</strong></td>
+                                <td>{{ form_data.product_id }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Return Reason:</strong></td>
+                                <td>{{ form_data.return_reason|title }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Analysis Time:</strong></td>
+                                <td>{{ moment().now().strftime('%Y-%m-%d %H:%M:%S') if moment else 'Just now' }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Model Used:</strong></td>
+                                <td>Random Forest</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Confidence:</strong></td>
+                                <td>{{ (abuse_probability * 100)|round(1) }}%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status:</strong></td>
+                                <td>
+                                    <span class="badge bg-{% if prediction == 1 %}danger{% else %}success{% endif %}">
+                                        {{ 'Flagged' if prediction == 1 else 'Clear' }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Modal for High Risk -->
+{% if prediction == 1 %}
+<div class="modal fade" id="alertModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    High Risk Return Detected
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>This return request has been flagged as potentially abusive.</strong></p>
+                <p>Please review the following:</p>
+                <ul>
+                    <li>User's return history ({{ form_data.user_return_count }} previous returns)</li>
+                    <li>Sentiment analysis of return message</li>
+                    <li>Return reason pattern</li>
+                    <li>Supporting documentation</li>
+                </ul>
+                <p class="mb-0">Recommendation: <strong>{{ recommendation.replace('_', ' ') }}</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning" id="escalate-btn">
+                    <i class="fas fa-exclamation-triangle"></i> Escalate to Manager
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Show alert modal if high risk
+{% if prediction == 1 %}
+document.addEventListener('DOMContentLoaded', function() {
+    var alertModal = new bootstrap.Modal(document.getElementById('alertModal'));
+    alertModal.show();
+});
+{% endif %}
+
+// Download report function
+function downloadReport() {
+    const reportData = {
+        order_id: '{{ form_data.order_id }}',
+        user_id: '{{ form_data.user_id }}',
+        product_id: '{{ form_data.product_id }}',
+        return_reason: '{{ form_data.return_reason }}',
+        abuse_probability: {{ abuse_probability }},
+        risk_score: {{ risk_score }},
+        recommendation: '{{ recommendation }}',
+        timestamp: new Date().toISOString()
+    };
+    
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "return_analysis_{{ form_data.order_id }}.json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
+</script>
+{% endblock %}

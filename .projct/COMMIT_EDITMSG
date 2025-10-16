@@ -1,0 +1,7 @@
+Enable users to escalate rejected returns for manager review
+
+Implements /escalate POST route, logs cases to CSV, and adds JS handler.
+
+Replit-Commit-Author: Agent
+Replit-Commit-Session-Id: 67fbb5b0-7411-44a4-9f07-7169eca1f78b
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/7417040f-9e8a-49ca-b5df-b9902671ad77/d264b5dd-ef90-4de0-bdeb-0e862562e615.jpg

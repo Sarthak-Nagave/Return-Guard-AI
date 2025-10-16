@@ -1,0 +1,10 @@
+timestamp,user_id,order_id,product_id,return_reason,sentiment,user_return_count,abuse_probability,risk_score,prediction,action,is_abuse
+2025-06-27T05:35:35.337482,U00103,O000000,P02881,wrong color,-0.35,0,0.0,0,Normal,APPROVE,False
+2025-06-27T05:39:05.981678,U00476,O000010,P01821,wrong item delivered,-0.72,1,0.99,99,Abusive,REJECT,True
+2025-06-27T05:59:54.095509,U00476,O000010,P01821,wrong item delivered,-0.72,1,0.99,99,Abusive,REJECT,True
+2025-06-27T06:14:45.157257,U00476,O000010,P01821,wrong item delivered,-0.72,1,0.99,99,Abusive,REJECT,True
+2025-06-27T06:56:05.507544,U00476,O000010,P01821,wrong item delivered,-0.72,1,0.99,99,Abusive,REJECT,True
+2025-06-27T07:04:19.065013,U00476,O000010,P01821,wrong item delivered,-0.72,1,0.99,99,Abusive,REJECT,True
+2025-06-27T07:18:32.619711,U00476,O000010,P01821,wrong item delivered,-0.72,1,0.99,99,Abusive,REJECT,True
+2025-06-27T13:22:40.887203,U00131,O000019,P04764,wrong item delivered,-0.8,0,1.0,100,Abusive,REJECT,True
+2025-06-27T13:28:40.052598,U00131,O000019,P04764,wrong item delivered,-0.8,0,0.98,98,Abusive,REJECT,True

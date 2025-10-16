@@ -1,0 +1,5 @@
+user_id,order_id,product_id,return_reason,abuse_probability,risk_score,escalated_at,escalated_by
+U00476,O000010,P01821,wrong item delivered,0.99,99,2025-06-27T07:04:23.943102,fraud_analyst
+U00476,O000010,P01821,wrong item delivered,0.99,99,2025-06-27T07:18:40.658443,fraud_analyst
+U00131,O000019,P04764,wrong item delivered,1.0,100,2025-06-27T13:22:47.591362,fraud_analyst
+U00131,O000019,P04764,wrong item delivered,0.98,98,2025-06-27T13:28:42.244047,fraud_analyst
